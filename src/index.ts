@@ -2,8 +2,14 @@ import fs from "fs";
 import WebSocket from "ws";
 import vdf from "vdf-parser";
 import { execSync } from "child_process";
-import { getNodeLabels, getNodeIP, getNodeStats, getPodStats } from "./kubernetes";
+import {
+  getNodeLabels,
+  getNodeIP,
+  getNodeStats,
+  getPodStats,
+} from "./kubernetes";
 import { getLanIP, getPublicIP, publicIP } from "./network";
+import { uploadDemos } from "./upload-demos";
 
 let pingInterval: NodeJS.Timeout | null = null;
 let ws: WebSocket | null = null;
@@ -135,3 +141,9 @@ async function getCsVersion() {
 
   return parsed?.AppState?.buildid;
 }
+
+setInterval(async () => {
+  await uploadDemos();
+}, 1000 * 60);
+
+uploadDemos();

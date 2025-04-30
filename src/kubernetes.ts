@@ -16,7 +16,9 @@ const metricsClient = new Metrics(kc);
 
 export async function getNodeIP() {
   const node = await getNode();
-  return node.status?.addresses?.find((address) => address.type === "InternalIP")?.address;
+  return node.status?.addresses?.find(
+    (address) => address.type === "InternalIP",
+  )?.address;
 }
 
 export async function getNodeLabels() {

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@kubernetes/client-node": "^0.22.0",
+    "node-fetch": "^3.3.2",
     "vdf-parser": "^1.2.1",
     "ws": "^8.18.0"
   },
