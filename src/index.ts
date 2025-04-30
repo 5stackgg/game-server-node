@@ -142,11 +142,8 @@ async function getCsVersion() {
   return parsed?.AppState?.buildid;
 }
 
-setInterval(
-  async () => {
-    await uploadDemos();
-  },
-  1000 * 60 * 60,
-);
+setInterval(async () => {
+  await uploadDemos();
+}, 1000 * 60);
 
 uploadDemos();
