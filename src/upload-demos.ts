@@ -116,6 +116,8 @@ export async function uploadDemos() {
       }
     }
   }
+
+  isUploading = false;
 }
 
 async function checkIfPathEmpty(path: string) {
