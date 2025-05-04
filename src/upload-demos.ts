@@ -27,6 +27,7 @@ export async function uploadDemos() {
   const demos = await getDemos();
 
   if (!demos.length) {
+    isUploading = false;
     return;
   }
 
