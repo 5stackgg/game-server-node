@@ -1,10 +1,10 @@
-import nodeDataChannel, { PeerConnection } from "node-datachannel";
 import WebSocket from "ws";
+import nodeDataChannel, { PeerConnection } from "node-datachannel";
 
 const pcMap = new Map<string, PeerConnection>();
 
 function createPeerConnection(clientId: string, peerId: string, ws: WebSocket) {
-  let peerConnection = new nodeDataChannel.PeerConnection("pc", {
+  let peerConnection = new nodeDataChannel.PeerConnection(peerId, {
     iceServers: [
       "stun:stun.l.google.com:19302",
       "stun:stun1.l.google.com:19302",
