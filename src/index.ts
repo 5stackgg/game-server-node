@@ -4,7 +4,7 @@ import { setupWebSocket, stopPing } from "./websocket";
 
 const ipInterval = setInterval(async () => {
   await getPublicIP();
-}, 60 * 1000);
+}, 5 * 1000);
 
 process.once("SIGUSR2", () => {
   stopPing();

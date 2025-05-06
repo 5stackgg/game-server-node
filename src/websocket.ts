@@ -70,7 +70,7 @@ export function startPing() {
     console.warn("unable to send node status", error);
   });
 
-  pingInterval = setInterval(sendNodeStatus, 1000 * 60);
+  pingInterval = setInterval(sendNodeStatus, 1000 * 30);
 }
 
 export function stopPing() {
