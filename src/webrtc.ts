@@ -1,7 +1,11 @@
 import WebSocket from "ws";
-import nodeDataChannel, { PeerConnection } from "node-datachannel";
+import nodeDataChannel, { LogLevel, PeerConnection } from "node-datachannel";
 
 const pcMap = new Map<string, PeerConnection>();
+
+if (process.env.WEBRTC_LOG_LEVEL) {
+  nodeDataChannel.initLogger(process.env.WEBRTC_LOG_LEVEL as LogLevel);
+}
 
 function createPeerConnection(clientId: string, peerId: string, ws: WebSocket) {
   let peerConnection = new nodeDataChannel.PeerConnection(peerId, {
@@ -57,7 +61,9 @@ function createPeerConnection(clientId: string, peerId: string, ws: WebSocket) {
     });
   });
 
-  return (pcMap[peerId] = peerConnection);
+  pcMap.set(peerId, peerConnection);
+
+  return peerConnection;
 }
 
 export function handleWebRTCMessage(event: string, data: any, ws: WebSocket) {
@@ -70,7 +76,12 @@ export function handleWebRTCMessage(event: string, data: any, ws: WebSocket) {
       pcMap.get(data.peerId)?.setRemoteDescription(data.description, data.type);
       break;
     case "candidate":
-      pcMap.get(data.peerId)?.addRemoteCandidate(data.candidate, data.mid);
+      pcMap
+        .get(data.peerId)
+        ?.addRemoteCandidate(
+          data.signal.candidate.candidate,
+          data.signal.candidate.sdpMid,
+        );
       break;
   }
 }
