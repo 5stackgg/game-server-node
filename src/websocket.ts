@@ -3,7 +3,9 @@ import {
   getNodeIP,
   getNodeLabels,
   getNodeStats,
+  getNodeSupportsCpuPinning,
   getPodStats,
+  getNode,
 } from "./kubernetes";
 import { getLanIP, getPublicIP, publicIP } from "./network";
 import { getCsVersion } from "./cs";
@@ -22,10 +24,12 @@ export function startPing() {
   }
 
   async function sendNodeStatus() {
+    const node = await getNode();
     const lanIP = await getLanIP();
-    const nodeIP = await getNodeIP();
-    const labels = await getNodeLabels();
-    const nodeStats = await getNodeStats();
+    const nodeIP = await getNodeIP(node);
+    const supportsCpuPinning = await getNodeSupportsCpuPinning(node);
+    const labels = await getNodeLabels(node);
+    const nodeStats = await getNodeStats(node);
     const podStats = await getPodStats();
 
     if (!publicIP) {
@@ -58,6 +62,7 @@ export function startPing() {
             publicIP,
             nodeStats,
             podStats,
+            supportsCpuPinning,
             csBuild: await getCsVersion(),
             node: process.env.NODE_NAME,
           },
@@ -109,9 +114,11 @@ function reset() {
 export async function setupWebSocket() {
   const wsUrl = `ws://${process.env.API_SERVICE_HOST}:5586/ws`;
 
+  const node = await getNode();
+
   ws = new WebSocket(wsUrl, {
     headers: {
-      "x-node-ip": await getNodeIP(),
+      "x-node-ip": await getNodeIP(node),
     },
   });
 

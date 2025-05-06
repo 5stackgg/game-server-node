@@ -4,6 +4,7 @@ import {
   KubeConfig,
   Metrics,
   PodMetric,
+  V1Node,
 } from "@kubernetes/client-node";
 
 const kc = new KubeConfig();
@@ -14,17 +15,20 @@ const nodeName = process.env.NODE_NAME;
 const apiClient = kc.makeApiClient(CoreV1Api);
 const metricsClient = new Metrics(kc);
 
-export async function getNodeIP() {
-  const node = await getNode();
+export async function getNodeIP(node: V1Node) {
   return node.status?.addresses?.find(
     (address) => address.type === "InternalIP",
   )?.address;
 }
 
-export async function getNodeLabels() {
-  try {
-    const node = await getNode();
+export async function getNodeSupportsCpuPinning(node: V1Node) {
+  return node.metadata?.annotations?.["k3s.io/node-args"].includes(
+    "cpu-manager-policy=static",
+  );
+}
 
+export async function getNodeLabels(node: V1Node) {
+  try {
     const _labels = node.metadata?.labels || {};
 
     const labels = {};
@@ -52,14 +56,8 @@ export async function getNode() {
   return node;
 }
 
-export async function getNodeStats() {
+export async function getNodeStats(node: V1Node) {
   try {
-    if (!nodeName) {
-      throw Error("NODE_NAME environment variable is not set");
-    }
-
-    const node = await getNode();
-
     const allocatable = node.status?.allocatable;
     const capacity = node.status?.capacity;
 
@@ -67,7 +65,11 @@ export async function getNodeStats() {
       throw new Error("Could not get node allocatable or capacity");
     }
 
-    const metrics = await metricsClient.getNodeMetrics(nodeName);
+    if (!node.metadata?.name) {
+      throw new Error("Could not get node name");
+    }
+
+    const metrics = await metricsClient.getNodeMetrics(node.metadata?.name);
 
     return {
       memoryAllocatable: allocatable.memory,
