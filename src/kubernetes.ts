@@ -135,3 +135,17 @@ export async function getPodStats() {
     console.error("Error listing pods:", error);
   }
 }
+
+export async function getNodeLowLatency(node: V1Node) {
+  try {
+    const nodeInfo = node.status?.nodeInfo;
+    if (!nodeInfo) {
+      throw new Error("Could not get node info");
+    }
+
+    return nodeInfo.kernelVersion.includes("lowlatency");
+  } catch (error) {
+    console.error("Error getting node kernel information:", error);
+    throw error;
+  }
+}

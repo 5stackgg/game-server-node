@@ -6,6 +6,7 @@ import {
   getNodeSupportsCpuPinning,
   getPodStats,
   getNode,
+  getNodeLowLatency,
 } from "./kubernetes";
 import { getLanIP, getPublicIP, publicIP } from "./network";
 import { getCsVersion } from "./cs";
@@ -24,12 +25,16 @@ export function startPing() {
   }
 
   async function sendNodeStatus() {
-    const node = await getNode();
     const lanIP = await getLanIP();
+
+    const node = await getNode();
+
     const nodeIP = await getNodeIP(node);
-    const supportsCpuPinning = await getNodeSupportsCpuPinning(node);
     const labels = await getNodeLabels(node);
     const nodeStats = await getNodeStats(node);
+    const supportsLowLatency = await getNodeLowLatency(node);
+    const supportsCpuPinning = await getNodeSupportsCpuPinning(node);
+
     const podStats = await getPodStats();
 
     if (!publicIP) {
@@ -62,6 +67,7 @@ export function startPing() {
             publicIP,
             nodeStats,
             podStats,
+            supportsLowLatency,
             supportsCpuPinning,
             csBuild: await getCsVersion(),
             node: process.env.NODE_NAME,
