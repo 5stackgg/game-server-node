@@ -35,8 +35,6 @@ export async function uploadDemos() {
 
   for (const demo of demos) {
     try {
-      console.info(`uploading demo`, demo);
-
       const presignedResponse = await fetch(
         `http://${process.env.API_SERVICE_HOST}:${process.env.API_SERVICE_PORT}/demos/${demo.matchId}/pre-signed`,
         {
@@ -106,14 +104,11 @@ export async function uploadDemos() {
       );
 
       fs.unlinkSync(demo.fullPath);
-
-      console.info(`uploaded demo`, demo);
     } catch (error) {
       console.error(`unable to get presigned url`, error);
     } finally {
       const matchDir = path.join(DEMO_DIR, demo.matchId);
       if (await checkIfPathEmpty(matchDir)) {
-        console.info(`removing match dir`, matchDir);
         fs.rmdirSync(matchDir, { recursive: true });
       }
     }
@@ -123,7 +118,7 @@ export async function uploadDemos() {
 }
 
 async function checkIfPathEmpty(path: string) {
-  const files = await glob(`${path}/**/*.{dem}`, { dot: true });
+  const files = await glob(`${path}/**/*.dem`, { dot: true });
   return files.length === 0;
 }
 async function getDemos(): Promise<Array<Demo>> {
