@@ -55,15 +55,15 @@ export async function uploadDemos() {
       switch (presignedResponse.status) {
         case 409:
           console.info(`match map is not finished`);
-          break;
+          continue;
         case 406:
           console.info(`demo is already uploaded`);
           fs.unlinkSync(demo.fullPath);
-          break;
+          continue;
         case 410:
           console.info(`match map not found`);
           fs.unlinkSync(demo.fullPath);
-          break;
+          continue;
       }
 
       if (!presignedResponse.ok) {
@@ -113,6 +113,7 @@ export async function uploadDemos() {
     } finally {
       const matchDir = path.join(DEMO_DIR, demo.matchId);
       if (await checkIfPathEmpty(matchDir)) {
+        console.info(`removing match dir`, matchDir);
         fs.rmdirSync(matchDir, { recursive: true });
       }
     }
