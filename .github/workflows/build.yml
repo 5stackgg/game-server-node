@@ -60,3 +60,4 @@ jobs:
           package-name: game-server-node
           package-type: container
           min-versions-to-keep: 3
+          ignore-versions: '^buildcache-*'
