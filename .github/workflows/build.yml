@@ -36,6 +36,11 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/game-server-node:${{ github.sha }}-${{ steps.platform.outputs.arch }}
             ghcr.io/${{ github.repository_owner }}/game-server-node:latest-${{ steps.platform.outputs.arch }}
+      - name: Delete Package Versions
+        uses: actions/delete-package-versions@v5.0.0
+        with:
+          package-name: game-server-node
+          package-type: container
   merge:
     needs: docker
     runs-on: ubuntu-latest
