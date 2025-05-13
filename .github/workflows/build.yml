@@ -57,10 +57,5 @@ jobs:
         with:
           package-name: game-server-node
           package-type: container
-          # We need at least 4 saved images to support builds and caching:
-          # - 1 manifest list (e.g., 'latest') that references the platform-specific image
-          # - 1 platform-specific image (amd64) for actual runtime use
-          # - 1 buildcache image (amd64) used by buildx to speed up incremental builds
-          # - Additional sha256 digests for content-addressable layers and manifests
-          min-versions-to-keep: 8
+          min-versions-to-keep: 6
           ignore-versions: '^buildcache-*'
