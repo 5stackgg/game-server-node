@@ -59,5 +59,11 @@ jobs:
         with:
           package-name: game-server-node
           package-type: container
-          min-versions-to-keep: 10
+          # We need at least 8 saved images to support multi-architecture builds and caching:
+          # - 1 multi-arch manifest list (e.g., 'latest') that references platform-specific images
+          # - 2 platform-specific images (amd64 & arm64) for actual runtime use
+          # - 2 buildcache images (amd64 & arm64) used by buildx to speed up incremental builds
+          # - Additional sha256 digests for content-addressable layers and manifests
+          # These ensure proper support for multi-arch pulls and efficient rebuilds.
+          min-versions-to-keep: 8
           ignore-versions: '^buildcache-*'
