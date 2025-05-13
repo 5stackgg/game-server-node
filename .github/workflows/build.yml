@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
+        platform: [linux/amd64]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -49,21 +49,18 @@ jobs:
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create -t ghcr.io/${{ github.repository_owner }}/game-server-node:latest \
-            ghcr.io/${{ github.repository_owner }}/game-server-node:latest-amd64 \
-            ghcr.io/${{ github.repository_owner }}/game-server-node:latest-arm64
+            ghcr.io/${{ github.repository_owner }}/game-server-node:latest-amd64
           docker buildx imagetools create -t ghcr.io/${{ github.repository_owner }}/game-server-node:${{ github.sha }} \
-            ghcr.io/${{ github.repository_owner }}/game-server-node:${{ github.sha }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/game-server-node:${{ github.sha }}-arm64
-      # - name: Delete Package Versions
-      #   uses: actions/delete-package-versions@v5.0.0
-      #   with:
-      #     package-name: game-server-node
-      #     package-type: container
-      #     # We need at least 8 saved images to support multi-architecture builds and caching:
-      #     # - 1 multi-arch manifest list (e.g., 'latest') that references platform-specific images
-      #     # - 2 platform-specific images (amd64 & arm64) for actual runtime use
-      #     # - 2 buildcache images (amd64 & arm64) used by buildx to speed up incremental builds
-      #     # - Additional sha256 digests for content-addressable layers and manifests
-      #     # These ensure proper support for multi-arch pulls and efficient rebuilds.
-      #     min-versions-to-keep: 
-      #     ignore-versions: '^buildcache-*'
+            ghcr.io/${{ github.repository_owner }}/game-server-node:${{ github.sha }}-amd64
+      - name: Delete Package Versions
+        uses: actions/delete-package-versions@v5.0.0
+        with:
+          package-name: game-server-node
+          package-type: container
+          # We need at least 4 saved images to support builds and caching:
+          # - 1 manifest list (e.g., 'latest') that references the platform-specific image
+          # - 1 platform-specific image (amd64) for actual runtime use
+          # - 1 buildcache image (amd64) used by buildx to speed up incremental builds
+          # - Additional sha256 digests for content-addressable layers and manifests
+          min-versions-to-keep: 8
+          ignore-versions: '^buildcache-*'
