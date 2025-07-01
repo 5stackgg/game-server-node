@@ -36,7 +36,7 @@ export async function uploadDemos() {
   for (const demo of demos) {
     try {
       const presignedResponse = await fetch(
-        `http://${process.env.API_SERVICE_HOST}:${process.env.API_SERVICE_PORT}/demos/${demo.matchId}/pre-signed`,
+        `http://${process.env.API_SERVICE_HOST}:${process.env.API_SERVICE_PORT}/demos/${demo.matchId}/pre-signed?&game-server-node=true`,
         {
           method: "POST",
           headers: {
