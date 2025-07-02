@@ -1,10 +1,10 @@
 import {
   CoreV1Api,
-  HttpError,
   KubeConfig,
   Metrics,
   PodMetric,
   V1Node,
+  FetchError,
 } from "@kubernetes/client-node";
 
 const kc = new KubeConfig();
@@ -51,9 +51,9 @@ export async function getNode() {
     throw Error("NODE_NAME environment variable is not set");
   }
 
-  const { body: node } = await apiClient.readNode(nodeName);
-
-  return node;
+  return await apiClient.readNode({
+    name: nodeName,
+  });
 }
 
 export async function getNodeStats(node: V1Node) {
@@ -69,20 +69,19 @@ export async function getNodeStats(node: V1Node) {
       throw new Error("Could not get node name");
     }
 
-    const metrics = await metricsClient.getNodeMetrics(node.metadata?.name);
+    const metrics = await metricsClient.getNodeMetrics();
 
     return {
       memoryAllocatable: allocatable.memory,
       memoryCapacity: capacity.memory,
       cpuCapacity: parseInt(capacity.cpu),
-      metrics,
+      metrics: metrics.items.find(
+        (nodeMetric) => nodeMetric.metadata.name === node.metadata?.name,
+      ),
     };
   } catch (error) {
-    if (error instanceof HttpError && error.statusCode !== 404) {
-      console.error(
-        "Error getting node metrics:",
-        error?.body || error.message,
-      );
+    if (error instanceof FetchError && error.code !== "404") {
+      console.error("Error getting node metrics:", error.message);
     }
   }
 }
@@ -93,41 +92,35 @@ export async function getPodStats() {
   }
 
   try {
-    const pods = await apiClient.listNamespacedPod(
-      "5stack",
-      undefined,
-      undefined,
-      undefined,
-      `spec.nodeName=${nodeName}`,
-    );
+    const podList = await apiClient.listNamespacedPod({
+      namespace: "5stack",
+      fieldSelector: `spec.nodeName=${nodeName}`,
+    });
 
     const stats: Array<{
       name: string;
       metrics: PodMetric;
     }> = [];
 
-    for (const pod of pods.body.items) {
+    const { items: podMetrics } = await metricsClient.getPodMetrics("5stack");
+
+    for (const pod of podList.items) {
       if (!pod.metadata?.namespace || !pod.metadata?.name) {
         continue;
       }
-      try {
-        const metrics = await metricsClient.getPodMetrics(
-          pod.metadata?.namespace,
-          pod.metadata?.name,
-        );
 
-        stats.push({
-          name: pod.metadata?.labels?.app!,
-          metrics,
-        });
-      } catch (error) {
-        if (error instanceof HttpError && error?.statusCode !== 404) {
-          console.error(
-            "Error getting pod metrics:",
-            error?.body || error.message,
-          );
-        }
+      const podMetric = podMetrics.find(
+        (podMetric) => podMetric.metadata.name === pod.metadata?.name,
+      );
+
+      if (!podMetric) {
+        continue;
       }
+
+      stats.push({
+        name: pod.metadata?.labels?.app!,
+        metrics: podMetric,
+      });
     }
 
     return stats;
