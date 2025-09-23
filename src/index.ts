@@ -24,9 +24,10 @@ server.listen(port, () => {
   console.log(`http server listening on : ${port}`);
 });
 
-process.once("SIGUSR2", () => {
+process.on(process.env.DEV ? "SIGUSR2" : "SIGTERM", () => {
   stopPing();
   clearInterval(ipInterval);
+  process.exit(0);
 });
 
 setupWebSocket();

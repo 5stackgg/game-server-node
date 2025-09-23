@@ -6,11 +6,15 @@ import {
   V1Node,
   FetchError,
 } from "@kubernetes/client-node";
+import * as child_process from "node:child_process";
+import { getNetworkStats } from "./network";
 
 const kc = new KubeConfig();
 kc.loadFromDefault();
 
 const nodeName = process.env.NODE_NAME;
+
+const cpuInfo = getCpuInfo();
 
 const apiClient = kc.makeApiClient(CoreV1Api);
 const metricsClient = new Metrics(kc);
@@ -72,9 +76,13 @@ export async function getNodeStats(node: V1Node) {
     const metrics = await metricsClient.getNodeMetrics();
 
     return {
+      disks: getDiskStats(),
+      network: getNetworkStats(),
       memoryAllocatable: allocatable.memory,
       memoryCapacity: capacity.memory,
+      cpuInfo,
       cpuCapacity: parseInt(capacity.cpu),
+      nvidiaGPU: allocatable["nvidia.com/gpu"],
       metrics: metrics.items.find(
         (nodeMetric) => nodeMetric.metadata.name === node.metadata?.name,
       ),
@@ -141,4 +149,62 @@ export async function getNodeLowLatency(node: V1Node) {
     console.error("Error getting node kernel information:", error);
     throw error;
   }
+}
+
+function getDiskStats() {
+  try {
+    const output = child_process.execSync(
+      "df -P / /demos 2>/dev/null || true",
+      { encoding: "utf8" },
+    );
+
+    return output
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => {
+        return line.length > 0 && !line.startsWith("Filesystem");
+      })
+      .map((line) => {
+        const [filesystem, size, used, available, usedPercent, mountpoint] =
+          line.split(/\s+/);
+        return {
+          filesystem,
+          size,
+          used,
+          available,
+          usedPercent,
+          mountpoint,
+        } as {
+          filesystem: string;
+          size: string;
+          used: string;
+          available: string;
+          usedPercent: string;
+          mountpoint: string;
+        };
+      })
+      .filter((disk) => {
+        return disk.mountpoint === "/" || disk.mountpoint === "/demos";
+      });
+  } catch (error) {
+    console.error("Error getting disk summary:", error);
+  }
+}
+
+function getCpuInfo() {
+  const json = child_process.execSync("lscpu -J", { encoding: "utf8" });
+  const parsed = JSON.parse(json) as {
+    lscpu: Array<{ field: string; data: string }>;
+  };
+
+  const map: Record<string, string> = {};
+
+  for (const item of parsed.lscpu) {
+    map[item.field.replace(/:/g, "")] = item.data;
+  }
+
+  return {
+    coresPerSocket: map["Core(s) per socket"],
+    threadsPerCore: map["Thread(s) per core"],
+  };
 }
