@@ -172,7 +172,7 @@ function captureData(data: string) {
     // Example line: "9709 B/s old=83628110721 now=83628120430"
     const match = data.match(/^(\d+)\s+B\/s/);
     if (match) {
-      return parseInt(match[1], 10) * 8;
+      return parseInt(match[1], 10);
     } else {
       console.warn("Could not parse network data:", data);
       return 0;
