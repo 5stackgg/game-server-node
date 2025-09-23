@@ -9,8 +9,6 @@ RUN yarn install --frozen-lockfile
 
 FROM node:22-alpine AS build
 
-RUN apk add util-linux
-
 WORKDIR /build
 
 COPY --from=deps /build/node_modules ./node_modules
@@ -21,6 +19,8 @@ RUN yarn build
 FROM node:22-alpine
 
 WORKDIR /opt/5stack
+
+RUN apk add --no-cache util-linux bash
 
 COPY --from=build /build/node_modules ./node_modules
 COPY --from=build /build/dist ./dist

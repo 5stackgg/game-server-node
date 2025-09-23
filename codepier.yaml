@@ -1,5 +1,5 @@
 namespaces: [5stack]
-image: node:22
+image: node:22-alpine
 deployment: dev-game-server-node-connector
 sync:
   - .:/opt/5stack
