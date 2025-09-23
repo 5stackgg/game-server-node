@@ -66,14 +66,17 @@ const capturedNics = new Map<
 >();
 
 async function captureNicStats(nic: string) {
-  let nicStats = capturedNics.get(nic);
-  if (!nicStats) {
-    nicStats = {
-      tx: new Map<string, number>(),
-      rx: new Map<string, number>(),
-    };
-    capturedNics.set(nic, nicStats);
+  if (capturedNics.has(nic)) {
+    return;
   }
+
+  const nicStats = {
+    tx: new Map<string, number>(),
+    rx: new Map<string, number>(),
+  };
+
+  capturedNics.set(nic, nicStats);
+
   capture(nic, "tx", (data) => {
     const tx = captureData(data);
     if (!tx) {
