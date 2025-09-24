@@ -82,7 +82,7 @@ export async function getNodeStats(node: V1Node) {
       memoryCapacity: capacity.memory,
       cpuInfo,
       cpuCapacity: parseInt(capacity.cpu),
-      nvidiaGPU: allocatable["nvidia.com/gpu"],
+      nvidiaGPU: allocatable["nvidia.com/gpu"] ? true : false,
       metrics: metrics.items.find(
         (nodeMetric) => nodeMetric.metadata.name === node.metadata?.name,
       ),
@@ -204,7 +204,7 @@ function getCpuInfo() {
   }
 
   return {
-    coresPerSocket: map["Core(s) per socket"],
-    threadsPerCore: map["Thread(s) per core"],
+    coresPerSocket: parseInt(map["Core(s) per socket"], 10),
+    threadsPerCore: parseInt(map["Thread(s) per core"], 10),
   };
 }
