@@ -6,8 +6,87 @@
     <title>Offline Configuration Tool</title>
     <script src="/assets/js/tailwind.js"></script>
     <link rel="stylesheet" href="/assets/css/custom.css" />
+    <style>
+      /* Toast notification styles */
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease-in-out;
+        max-width: 400px;
+        font-weight: 500;
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      .toast.success {
+        background: #10b981;
+      }
+
+      .toast.warning {
+        background: #f59e0b;
+      }
+
+      .toast .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .toast .toast-icon {
+        font-size: 20px;
+      }
+
+      .toast .toast-message {
+        flex: 1;
+      }
+
+      .toast .toast-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Field validation styles */
+      .field-error {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+      }
+
+      .field-error:focus {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+      }
+
+      .error-message {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+      }
+    </style>
   </head>
   <body class="bg-gray-900 text-gray-100 min-h-screen dark">
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
     <div class="max-w-6xl mx-auto p-5">
       <!-- Header -->
       <header
@@ -427,6 +506,239 @@
     </div>
 
     <script>
+      // Toast notification system
+      function showToast(message, type = "error", duration = 5000) {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+
+        const icon = type === "success" ? "✓" : type === "warning" ? "⚠" : "✕";
+
+        toast.innerHTML = `
+          <div class="toast-content">
+            <span class="toast-icon">${icon}</span>
+            <span class="toast-message">${message}</span>
+            <button class="toast-close" onclick="closeToast(this)">×</button>
+          </div>
+        `;
+
+        container.appendChild(toast);
+
+        // Trigger animation
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        // Auto remove after duration
+        setTimeout(() => {
+          if (toast.parentNode) {
+            closeToast(toast.querySelector(".toast-close"));
+          }
+        }, duration);
+      }
+
+      function closeToast(button) {
+        const toast = button.closest(".toast");
+        toast.classList.remove("show");
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }
+
+      // Form validation functions
+      function validateForm() {
+        const errors = [];
+        const form = document.getElementById("matchForm");
+
+        // Clear previous error states
+        clearFieldErrors();
+
+        // Validate team names
+        const team1Name = document.getElementById("lineup1Name").value.trim();
+        const team2Name = document.getElementById("lineup2Name").value.trim();
+
+        if (!team1Name) {
+          errors.push("Team 1 name is required");
+          highlightField("lineup1Name", "Team 1 name is required");
+        }
+
+        if (!team2Name) {
+          errors.push("Team 2 name is required");
+          highlightField("lineup2Name", "Team 2 name is required");
+        }
+
+        if (team1Name && team2Name && team1Name === team2Name) {
+          errors.push("Team names must be different");
+          highlightField("lineup1Name", "Team names must be different");
+          highlightField("lineup2Name", "Team names must be different");
+        }
+
+        // Validate players
+        const team1Players = validateTeamPlayers("team1", "Team 1");
+        const team2Players = validateTeamPlayers("team2", "Team 2");
+
+        errors.push(...team1Players);
+        errors.push(...team2Players);
+
+        // Validate maps
+        const mapErrors = validateMaps();
+        errors.push(...mapErrors);
+
+        // Validate captains
+        const captainErrors = validateCaptains();
+        errors.push(...captainErrors);
+
+        return errors;
+      }
+
+      function validateTeamPlayers(teamId, teamName) {
+        const errors = [];
+        const container = document.getElementById(teamId + "-players");
+        const playerRows = container.querySelectorAll(".player-row");
+        const matchType = document.getElementById("type").value;
+
+        // Calculate required players based on match type
+        let requiredPlayers;
+        switch (matchType) {
+          case "Competitive":
+            requiredPlayers = 5;
+            break;
+          case "Duel":
+            requiredPlayers = 2;
+            break;
+          case "Wingman":
+            requiredPlayers = 1;
+            break;
+          default:
+            requiredPlayers = 5;
+        }
+
+        // Check if we have enough players
+        if (playerRows.length < requiredPlayers) {
+          errors.push(`${teamName} needs at least ${requiredPlayers} players`);
+        }
+
+        // Validate each player's Steam ID
+        playerRows.forEach((row, index) => {
+          const steamIdInput = row.querySelector(
+            'input[name*="player_steam_id"]',
+          );
+          const steamId = steamIdInput.value.trim();
+
+          if (!steamId) {
+            errors.push(
+              `${teamName} Player ${index + 1}: Steam ID is required`,
+            );
+            highlightField(steamIdInput, "Steam ID is required");
+          } else if (!isValidSteamId(steamId)) {
+            errors.push(
+              `${teamName} Player ${index + 1}: Invalid Steam ID format`,
+            );
+            highlightField(steamIdInput, "Invalid Steam ID format");
+          }
+        });
+
+        return errors;
+      }
+
+      function validateMaps() {
+        const errors = [];
+        const container = document.getElementById("maps-container");
+        const mapRows = container.querySelectorAll(".map-row");
+
+        if (mapRows.length === 0) {
+          errors.push("At least one map is required");
+          return errors;
+        }
+
+        mapRows.forEach((row, index) => {
+          const mapNameInput = row.querySelector('input[name="map_name[]"]');
+          const mapName = mapNameInput.value.trim();
+
+          if (!mapName) {
+            errors.push(`Map ${index + 1}: Map name is required`);
+            highlightField(mapNameInput, "Map name is required");
+          }
+        });
+
+        return errors;
+      }
+
+      function validateCaptains() {
+        const errors = [];
+
+        // Check Team 1 captain
+        const team1Captain = document.querySelector(
+          'input[name="lineup_1_captain"]:checked',
+        );
+        if (!team1Captain) {
+          errors.push("Team 1 must have a captain selected");
+        }
+
+        // Check Team 2 captain
+        const team2Captain = document.querySelector(
+          'input[name="lineup_2_captain"]:checked',
+        );
+        if (!team2Captain) {
+          errors.push("Team 2 must have a captain selected");
+        }
+
+        return errors;
+      }
+
+      function isValidSteamId(steamId) {
+        // Steam ID validation - can be Steam64 ID (17 digits) or Steam ID format
+        const steam64Regex = /^[0-9]{17}$/;
+        const steamIdRegex = /^STEAM_[0-5]:[01]:[0-9]+$/;
+        return steam64Regex.test(steamId) || steamIdRegex.test(steamId);
+      }
+
+      function highlightField(fieldId, message) {
+        const field =
+          typeof fieldId === "string"
+            ? document.getElementById(fieldId)
+            : fieldId;
+        if (!field) return;
+
+        field.classList.add("field-error");
+
+        // Remove existing error message
+        const existingError = field.parentNode.querySelector(".error-message");
+        if (existingError) {
+          existingError.remove();
+        }
+
+        // Add error message
+        const errorDiv = document.createElement("span");
+        errorDiv.className = "error-message";
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+
+        // Remove error state on input
+        field.addEventListener(
+          "input",
+          function () {
+            this.classList.remove("field-error");
+            const errorMsg = this.parentNode.querySelector(".error-message");
+            if (errorMsg) {
+              errorMsg.remove();
+            }
+          },
+          { once: true },
+        );
+      }
+
+      function clearFieldErrors() {
+        // Remove all error classes and messages
+        document.querySelectorAll(".field-error").forEach((field) => {
+          field.classList.remove("field-error");
+        });
+
+        document.querySelectorAll(".error-message").forEach((error) => {
+          error.remove();
+        });
+      }
+
       // Generate UUID function
       function generateUUID() {
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
@@ -933,10 +1245,66 @@
         jsonOutput.classList.remove("hidden");
       }
 
-      function submitForm() {
+      async function submitForm() {
+        // Validate form first
+        const validationErrors = validateForm();
+
+        if (validationErrors.length > 0) {
+          // Show validation errors in toast
+          const errorMessage =
+            validationErrors.length === 1
+              ? validationErrors[0]
+              : `Please fix ${validationErrors.length} validation errors:\n• ${validationErrors.join("\n• ")}`;
+
+          showToast(errorMessage, "error", 8000);
+
+          // Scroll to first error field
+          const firstErrorField = document.querySelector(".field-error");
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            firstErrorField.focus();
+          }
+
+          return;
+        }
+
+        // If validation passes, proceed with form submission
         generateJSON();
-        // Here you would typically send the data to your server
-        // Form submitted successfully - JSON will be displayed below
+        const jsonOutput = document.getElementById("jsonOutput");
+        let json;
+        try {
+          json = JSON.parse(jsonOutput.textContent || "{}");
+        } catch (e) {
+          showToast(
+            "Error: Invalid JSON. Please generate the JSON first.",
+            "error",
+          );
+          return;
+        }
+
+        try {
+          const response = await fetch("/start-match", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(json),
+          });
+
+          if (response.ok) {
+            showToast("Match started successfully!", "success");
+          } else {
+            showToast("Failed to start match. Please try again.", "error");
+          }
+        } catch (error) {
+          showToast(
+            "Network error. Please check your connection and try again.",
+            "error",
+          );
+        }
       }
     </script>
   </body>
