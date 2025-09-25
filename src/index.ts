@@ -30,6 +30,12 @@ const srcDirectory = process.env.DEV
   : path.join(__dirname, "..");
 
 const server = http.createServer((req, res) => {
+  if (req.method === "GET" && req.url && req.url.startsWith("/healthz")) {
+    res.statusCode = 200;
+    res.end();
+    return;
+  }
+
   if (req.url && req.url.startsWith("/assets")) {
     res.statusCode = 200;
     res.end(fs.readFileSync(path.join(srcDirectory, req.url)));
@@ -53,12 +59,6 @@ const server = http.createServer((req, res) => {
     }
     res.statusCode = 200;
     res.end(fs.readFileSync(path.join(srcDirectory, "./index.html")));
-    return;
-  }
-
-  if (req.method === "GET" && req.url && req.url.startsWith("/healthz")) {
-    res.statusCode = 200;
-    res.end();
     return;
   }
 
