@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Configuration Tool</title>
+    <script src="/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/assets/css/custom.css" />
+  </head>
+  <body class="bg-gray-900 text-gray-100 min-h-screen dark">
+    <div class="max-w-6xl mx-auto p-5">
+      <!-- Header -->
+      <header
+        class="bg-gradient-to-br from-indigo-600 via-purple-700 to-indigo-900 text-white p-10 mb-10 rounded-2xl shadow-2xl flex items-center gap-6 relative overflow-hidden"
+      >
+        <div class="absolute inset-0 pointer-events-none z-0">
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 600 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-full h-full opacity-30"
+          >
+            <ellipse cx="500" cy="0" rx="300" ry="100" fill="#a5b4fc" />
+            <ellipse cx="100" cy="200" rx="200" ry="80" fill="#c4b5fd" />
+          </svg>
+        </div>
+        <div class="relative z-10 flex-shrink-0">
+          <img
+            src="https://docs.5stack.gg/5stack-logo.png"
+            alt="5Stack Logo"
+            class="w-24 h-24 rounded-full shadow-lg border-4 border-white/20 bg-white/10"
+          />
+        </div>
+        <div class="relative z-10 flex-1 text-center">
+          <h1
+            class="text-5xl font-extrabold mb-1 drop-shadow-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent"
+          >
+            5Stack <span class="font-light">Offline Match Configuration</span>
+          </h1>
+          <p class="text-lg text-indigo-100 mt-2 font-medium max-w-2xl mx-auto">
+            Create matches and generate JSON for offline matches.
+          </p>
+        </div>
+      </header>
+
+      <!-- Form Container -->
+      <div class="bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+        <form id="matchForm">
+          <input type="hidden" id="lineup1Id" name="lineup_1_id" />
+          <input type="hidden" id="lineup2Id" name="lineup_2_id" />
+          <!-- Basic Match Information -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-300 mb-4 pb-2 border-b-2 border-gray-600"
+            >
+              Basic Match Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Match ID</label
+                >
+                <input
+                  type="text"
+                  id="matchId"
+                  name="id"
+                  readonly
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-600 text-gray-300 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Server Password</label
+                >
+                <input
+                  type="text"
+                  id="password"
+                  name="password"
+                  value="525fafac-2572-437f-8d8a-f805b3e1f9e5"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Match Options -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-300 mb-4 pb-2 border-b-2 border-gray-600"
+            >
+              Match Options
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div class="checkbox-container">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    id="overtime"
+                    name="overtime"
+                    checked
+                  />
+                  <span class="checkmark"></span>
+                </label>
+                <label for="overtime" class="checkbox-label"
+                  >Enable Overtime</label
+                >
+              </div>
+              <div class="checkbox-container">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    id="knifeRound"
+                    name="knife_round"
+                    checked
+                  />
+                  <span class="checkmark"></span>
+                </label>
+                <label for="knifeRound" class="checkbox-label"
+                  >Knife Round</label
+                >
+              </div>
+              <div class="checkbox-container">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="coaches" name="coaches" />
+                  <span class="checkmark"></span>
+                </label>
+                <label for="coaches" class="checkbox-label"
+                  >Allow Coaches</label
+                >
+              </div>
+            </div>
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
+            >
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Max Rounds</label
+                >
+                <input
+                  type="number"
+                  id="mr"
+                  name="mr"
+                  value="8"
+                  min="1"
+                  max="30"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Match Type</label
+                >
+                <select
+                  id="type"
+                  name="type"
+                  onchange="updatePlayerLimits()"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                >
+                  <option value="Competitive" selected>
+                    Competitive (5 players per team)
+                  </option>
+                  <option value="Duel">Duel (2 players per team)</option>
+                  <option value="Wingman">Wingman (1 player per team)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Best Of</label
+                >
+                <select
+                  id="bestOf"
+                  name="best_of"
+                  onchange="updateMapCount()"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                >
+                  <option value="1" selected>1</option>
+                  <option value="3">3</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >TV Delay (seconds)</label
+                >
+                <input
+                  type="number"
+                  id="tvDelay"
+                  name="tv_delay"
+                  value="115"
+                  min="0"
+                  max="300"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                />
+              </div>
+            </div>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
+            >
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Ready Setting</label
+                >
+                <select
+                  id="readySetting"
+                  name="ready_setting"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                >
+                  <option value="Admin" selected>Admin</option>
+                  <option value="Captains">Captains</option>
+                  <option value="Coach">Coach</option>
+                  <option value="Players">Players</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Timeout Setting</label
+                >
+                <select
+                  id="timeoutSetting"
+                  name="timeout_setting"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                >
+                  <option value="Admin" selected>Admin</option>
+                  <option value="Coach">Coach</option>
+                  <option value="CoachAndCaptains">Coach and Captains</option>
+                  <option value="CoachAndPlayers">Coach and Players</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Tech Timeout Setting</label
+                >
+                <select
+                  id="techTimeoutSetting"
+                  name="tech_timeout_setting"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                >
+                  <option value="Admin" selected>Admin</option>
+                  <option value="Coach">Coach</option>
+                  <option value="CoachAndCaptains">Coach and Captains</option>
+                  <option value="CoachAndPlayers">Coach and Players</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2"
+                  >Number of Substitutes</label
+                >
+                <input
+                  type="number"
+                  id="numberOfSubstitutes"
+                  name="number_of_substitutes"
+                  value="0"
+                  min="0"
+                  max="10"
+                  class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2"
+                >CFG Override</label
+              >
+              <textarea
+                id="cfgOverride"
+                name="cfg_override"
+                rows="3"
+                placeholder="Custom server configuration commands..."
+                class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Team 1 (Lineup 1) -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-300 mb-4 pb-2 border-b-2 border-gray-600"
+            >
+              Team 1
+            </h3>
+            <div class="bg-gray-700 p-4 rounded-lg mb-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2"
+                    >Team Name</label
+                  >
+                  <input
+                    type="text"
+                    id="lineup1Name"
+                    name="lineup_1_name"
+                    value="Team 1"
+                    class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2"
+                    >Coach Steam ID</label
+                  >
+                  <input
+                    type="text"
+                    id="lineup1CoachSteamId"
+                    name="lineup_1_coach_steam_id"
+                    placeholder="Optional"
+                    class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                  />
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-medium text-gray-300">Players</h4>
+                <button
+                  type="button"
+                  onclick="addPlayer('team1')"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                >
+                  + Add Player
+                </button>
+              </div>
+
+              <div id="team1-players" class="space-y-3">
+                <!-- Initial player will be added by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Team 2 (Lineup 2) -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-300 mb-4 pb-2 border-b-2 border-gray-600"
+            >
+              Team 2
+            </h3>
+            <div class="bg-gray-700 p-4 rounded-lg mb-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2"
+                    >Team Name</label
+                  >
+                  <input
+                    type="text"
+                    id="lineup2Name"
+                    name="lineup_2_name"
+                    value="Team 2"
+                    class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2"
+                    >Coach Steam ID</label
+                  >
+                  <input
+                    type="text"
+                    id="lineup2CoachSteamId"
+                    name="lineup_2_coach_steam_id"
+                    placeholder="Optional"
+                    class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                  />
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-medium text-gray-300">Players</h4>
+                <button
+                  type="button"
+                  onclick="addPlayer('team2')"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                >
+                  + Add Player
+                </button>
+              </div>
+
+              <div id="team2-players" class="space-y-3">
+                <!-- Initial player will be added by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Match Maps -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-300 mb-4 pb-2 border-b-2 border-gray-600"
+            >
+              Match Maps
+            </h3>
+            <div class="bg-gray-700 p-4 rounded-lg mb-4">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-medium text-gray-300">Maps</h4>
+                <span id="map-count-display" class="text-sm text-gray-400"
+                  >(Best of 1)</span
+                >
+              </div>
+
+              <div id="maps-container" class="space-y-4">
+                <!-- Initial map will be added by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-4 justify-center mt-8">
+            <button
+              type="button"
+              onclick="generateJSON()"
+              class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              Generate JSON
+            </button>
+            <button
+              type="button"
+              onclick="submitForm()"
+              class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              Start Match
+            </button>
+          </div>
+        </form>
+
+        <!-- JSON Output -->
+        <div
+          id="jsonOutput"
+          class="hidden mt-4 p-4 bg-gray-900 text-gray-100 dark:text-gray-900 rounded-lg font-mono text-sm whitespace-pre-wrap overflow-x-auto border border-gray-700 dark:border-gray-300"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      // Generate UUID function
+      function generateUUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+          /[xy]/g,
+          function (c) {
+            const r = (Math.random() * 16) | 0;
+            const v = c == "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          },
+        );
+      }
+
+      // Generate UUIDs on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("matchId").value = generateUUID();
+
+        // Generate UUIDs for match and lineups
+        document.getElementById("lineup1Id").value = generateUUID();
+        document.getElementById("lineup2Id").value = generateUUID();
+
+        // Add initial map slot
+        addMap();
+
+        // Set initial player limits (this will add the correct number of players)
+        updatePlayerLimits();
+        updateMapCount(); // Set initial map count
+        updateRemoveButtonVisibility(); // Set initial remove button visibility
+
+        // Add event listeners for changes that affect player limits
+        document
+          .getElementById("numberOfSubstitutes")
+          .addEventListener("change", updatePlayerLimits);
+        document
+          .getElementById("type")
+          .addEventListener("change", updatePlayerLimits);
+      });
+
+      // Player management functions
+      function addPlayer(teamId) {
+        const container = document.getElementById(teamId + "-players");
+        const playerCount = container.children.length;
+        const matchType = document.getElementById("type").value;
+        const numberOfSubstitutes =
+          parseInt(document.getElementById("numberOfSubstitutes").value) || 0;
+
+        // Check player limits based on match type + substitutes
+        let maxPlayers;
+        switch (matchType) {
+          case "Competitive":
+            maxPlayers = 5 + numberOfSubstitutes;
+            break;
+          case "Duel":
+            maxPlayers = 2 + numberOfSubstitutes;
+            break;
+          case "Wingman":
+            maxPlayers = 1 + numberOfSubstitutes;
+            break;
+          default:
+            maxPlayers = 5 + numberOfSubstitutes;
+        }
+
+        if (playerCount >= maxPlayers) {
+          return; // Don't add if at maximum players
+        }
+
+        const newPlayerRow = document.createElement("div");
+
+        let minPlayers;
+        switch (matchType) {
+          case "Competitive":
+            minPlayers = 5;
+            break;
+          case "Duel":
+            minPlayers = 2;
+            break;
+          case "Wingman":
+            minPlayers = 1;
+            break;
+          default:
+            minPlayers = 5;
+        }
+
+        const isSubstitute = playerCount >= minPlayers;
+        newPlayerRow.className = `player-row bg-gray-700 p-4 rounded-lg mb-3 ${isSubstitute ? "substitute-player" : "required-player"}`;
+        newPlayerRow.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">Steam ID</label>
+                            <input 
+                                type="text" 
+                                name="lineup_${teamId === "team1" ? "1" : "2"}_player_steam_id[]" 
+                                placeholder="Steam ID"
+                                class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                            >
+                        </div>
+                        <div class="checkbox-container">
+                            <label class="custom-checkbox">
+                                <input type="radio" id="lineup_${teamId === "team1" ? "1" : "2"}_captain_${playerCount}" name="lineup_${teamId === "team1" ? "1" : "2"}_captain" value="${playerCount}">
+                                <span class="checkmark"></span>
+                            </label>
+                            <label for="lineup_${teamId === "team1" ? "1" : "2"}_captain_${playerCount}" class="checkbox-label text-xs">Captain</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Name</label>
+                        <input 
+                            type="text" 
+                            name="lineup_${teamId === "team1" ? "1" : "2"}_player_name[]" 
+                            placeholder="Optional"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                    </div>
+                    <div class="flex flex-col justify-start space-y-3">
+                        <div class="flex space-x-4 items-center" style="height: 3rem; margin-top: 2rem;">
+                            <div class="checkbox-container">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="lineup_${teamId === "team1" ? "1" : "2"}_player_gagged_${playerCount}" name="lineup_${teamId === "team1" ? "1" : "2"}_player_gagged[]" value="true">
+                                    <span class="checkmark"></span>
+                                </label>
+                                <label for="lineup_${teamId === "team1" ? "1" : "2"}_player_gagged_${playerCount}" class="checkbox-label">Gagged</label>
+                            </div>
+                            <div class="checkbox-container">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="lineup_${teamId === "team1" ? "1" : "2"}_player_muted_${playerCount}" name="lineup_${teamId === "team1" ? "1" : "2"}_player_muted[]" value="true">
+                                    <span class="checkmark"></span>
+                                </label>
+                                <label for="lineup_${teamId === "team1" ? "1" : "2"}_player_muted_${playerCount}" class="checkbox-label">Muted</label>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <button type="button" onclick="removePlayer(this)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors w-full remove-player-btn">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        container.appendChild(newPlayerRow);
+        updateRemoveButtonVisibility();
+      }
+
+      function removePlayer(button) {
+        const container = button.closest("#team1-players, #team2-players");
+        if (container.children.length <= 1) {
+          return; // Don't remove if only one player left
+        }
+        button.closest(".player-row").remove();
+        updateRemoveButtonVisibility();
+      }
+
+      function updatePlayerLimits() {
+        const matchType = document.getElementById("type").value;
+        const numberOfSubstitutes =
+          parseInt(document.getElementById("numberOfSubstitutes").value) || 0;
+
+        let minPlayers, maxPlayers;
+        switch (matchType) {
+          case "Competitive":
+            minPlayers = 5;
+            maxPlayers = 5 + numberOfSubstitutes;
+            break;
+          case "Duel":
+            minPlayers = 2;
+            maxPlayers = 2 + numberOfSubstitutes;
+            break;
+          case "Wingman":
+            minPlayers = 1;
+            maxPlayers = 1 + numberOfSubstitutes;
+            break;
+          default:
+            minPlayers = 5;
+            maxPlayers = 5 + numberOfSubstitutes;
+        }
+
+        // Ensure each team has the correct number of players
+        document
+          .querySelectorAll("#team1-players, #team2-players")
+          .forEach((container) => {
+            const teamId = container.id.replace("-players", "");
+            const currentPlayerCount = container.children.length;
+
+            if (currentPlayerCount < minPlayers) {
+              // Add players if below minimum
+              for (let i = currentPlayerCount; i < minPlayers; i++) {
+                addPlayer(teamId);
+              }
+            } else if (currentPlayerCount > maxPlayers) {
+              // Remove players if above maximum
+              const playersToRemove = currentPlayerCount - maxPlayers;
+              for (let i = 0; i < playersToRemove; i++) {
+                const lastPlayer = container.lastElementChild;
+                if (lastPlayer) {
+                  lastPlayer.remove();
+                }
+              }
+            }
+          });
+
+        // Update add player buttons
+        document
+          .querySelectorAll('[onclick*="addPlayer"]')
+          .forEach((button) => {
+            button.textContent = `+ Add Substitute (Max: ${maxPlayers})`;
+          });
+
+        updateRemoveButtonVisibility();
+      }
+
+      function updateRemoveButtonVisibility() {
+        const matchType = document.getElementById("type").value;
+        const numberOfSubstitutes =
+          parseInt(document.getElementById("numberOfSubstitutes").value) || 0;
+
+        // Calculate minimum and maximum players based on match type
+        let minPlayers, maxPlayers;
+        switch (matchType) {
+          case "Competitive":
+            minPlayers = 5;
+            maxPlayers = 5 + numberOfSubstitutes;
+            break;
+          case "Duel":
+            minPlayers = 2;
+            maxPlayers = 2 + numberOfSubstitutes;
+            break;
+          case "Wingman":
+            minPlayers = 1;
+            maxPlayers = 1 + numberOfSubstitutes;
+            break;
+          default:
+            minPlayers = 5;
+            maxPlayers = 5 + numberOfSubstitutes;
+        }
+
+        // Update player classes and remove buttons
+        document
+          .querySelectorAll("#team1-players, #team2-players")
+          .forEach((container) => {
+            const playerRows = container.querySelectorAll(".player-row");
+
+            playerRows.forEach((row, index) => {
+              const isSubstitute = index >= minPlayers;
+
+              // Update class to reflect player type
+              row.classList.remove("required-player", "substitute-player");
+              row.classList.add(
+                isSubstitute ? "substitute-player" : "required-player",
+              );
+
+              // Show/hide remove button based on player type
+              const removeButton = row.querySelector(".remove-player-btn");
+              if (removeButton) {
+                removeButton.style.display = isSubstitute ? "block" : "none";
+              }
+            });
+          });
+      }
+
+      // Map management functions
+      function addMap() {
+        const container = document.getElementById("maps-container");
+        const mapCount = container.children.length;
+
+        const newMapRow = document.createElement("div");
+        newMapRow.className = "map-row bg-gray-800 p-4 rounded-lg";
+        newMapRow.innerHTML = `
+                <!-- Hidden Map ID field with auto-generated UUID -->
+                <input type="hidden" name="map_id[]" value="${generateUUID()}">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Map Name</label>
+                        <input 
+                            type="text" 
+                            name="map_name[]" 
+                            placeholder="e.g., de_dust2"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Workshop Map ID</label>
+                        <input 
+                            type="text" 
+                            name="workshop_map_id[]" 
+                            placeholder="Optional"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Map Order</label>
+                        <input 
+                            type="number" 
+                            name="map_order[]" 
+                            value="${mapCount + 1}" 
+                            min="1"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                    </div>
+                </div>
+                <!-- Hidden Map Status field with default value -->
+                <input type="hidden" name="map_status[]" value="Warmup">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Team 1 Side</label>
+                        <select 
+                            name="lineup_1_side[]"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                            <option value="CT" selected>CT</option>
+                            <option value="TERRORIST">TERRORIST</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Team 2 Side</label>
+                        <select 
+                            name="lineup_2_side[]"
+                            class="w-full p-3 border-2 border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-800"
+                        >
+                            <option value="TERRORIST" selected>TERRORIST</option>
+                            <option value="CT">CT</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        container.appendChild(newMapRow);
+        updateMapOrderNumbers();
+        updateMapCountDisplay();
+        updateRemoveButtonVisibility();
+      }
+
+      function updateMapCount() {
+        const bestOf = parseInt(document.getElementById("bestOf").value);
+        const container = document.getElementById("maps-container");
+        const currentMapCount = container.children.length;
+
+        // Calculate required number of maps based on best of
+        // Best of 1 = 1 map, Best of 3 = 3 maps, Best of 5 = 5 maps
+        const requiredMaps = bestOf;
+
+        if (currentMapCount < requiredMaps) {
+          // Add maps if we need more
+          for (let i = currentMapCount; i < requiredMaps; i++) {
+            addMap();
+          }
+        } else if (currentMapCount > requiredMaps) {
+          // Remove maps if we have too many (but keep at least 1)
+          const mapsToRemove = Math.min(
+            currentMapCount - requiredMaps,
+            currentMapCount - 1,
+          );
+          for (let i = 0; i < mapsToRemove; i++) {
+            const lastMap = container.lastElementChild;
+            if (lastMap) {
+              lastMap.remove();
+            }
+          }
+        }
+
+        // Update map order numbers
+        updateMapOrderNumbers();
+
+        // Update display
+        updateMapCountDisplay();
+
+        // Update remove button visibility
+        updateRemoveButtonVisibility();
+      }
+
+      function updateMapCountDisplay() {
+        const bestOf = parseInt(document.getElementById("bestOf").value);
+        const container = document.getElementById("maps-container");
+        const currentMapCount = container.children.length;
+        const display = document.getElementById("map-count-display");
+
+        display.textContent = `(Best of ${bestOf})`;
+      }
+
+      function updateMapOrderNumbers() {
+        const container = document.getElementById("maps-container");
+        const mapRows = container.children;
+
+        for (let i = 0; i < mapRows.length; i++) {
+          const orderInput = mapRows[i].querySelector(
+            'input[name="map_order[]"]',
+          );
+          if (orderInput) {
+            orderInput.value = i + 1;
+          }
+        }
+      }
+
+      function generateJSON() {
+        const form = document.getElementById("matchForm");
+        const formData = new FormData(form);
+
+        // Get global timeout values
+        const lineup1Timeouts =
+          parseInt(formData.get("lineup_1_timeouts_available")) || 2;
+        const lineup2Timeouts =
+          parseInt(formData.get("lineup_2_timeouts_available")) || 2;
+
+        // Build match maps array
+        const mapIds = formData.getAll("map_id[]");
+        const mapNames = formData.getAll("map_name[]");
+        const workshopMapIds = formData.getAll("workshop_map_id[]");
+        const mapOrders = formData.getAll("map_order[]");
+        const mapStatuses = formData.getAll("map_status[]");
+        const lineup1Sides = formData.getAll("lineup_1_side[]");
+        const lineup2Sides = formData.getAll("lineup_2_side[]");
+
+        const matchMaps = mapIds.map((mapId, index) => ({
+          id: mapId,
+          map: {
+            name: mapNames[index] || "",
+            workshop_map_id: workshopMapIds[index] || null,
+          },
+          rounds: [],
+          order: parseInt(mapOrders[index]) || index + 1,
+          status: mapStatuses[index] || "Warmup",
+          lineup_1_side: lineup1Sides[index] || "CT",
+          lineup_2_side: lineup2Sides[index] || "TERRORIST",
+          lineup_1_timeouts_available: lineup1Timeouts,
+          lineup_2_timeouts_available: lineup2Timeouts,
+        }));
+
+        // Build lineup players arrays
+        const lineup1SteamIds = formData.getAll("lineup_1_player_steam_id[]");
+        const lineup1Names = formData.getAll("lineup_1_player_name[]");
+        const lineup1Captains = formData.getAll("lineup_1_captain");
+        const lineup1Gagged = formData.getAll("lineup_1_player_gagged[]");
+        const lineup1Muted = formData.getAll("lineup_1_player_muted[]");
+
+        const lineup2SteamIds = formData.getAll("lineup_2_player_steam_id[]");
+        const lineup2Names = formData.getAll("lineup_2_player_name[]");
+        const lineup2Captains = formData.getAll("lineup_2_captain");
+        const lineup2Gagged = formData.getAll("lineup_2_player_gagged[]");
+        const lineup2Muted = formData.getAll("lineup_2_player_muted[]");
+
+        const lineup1Players = lineup1SteamIds.map((steamId, index) => ({
+          captain: lineup1Captains.includes(index.toString()),
+          steam_id: steamId,
+          match_lineup_id: formData.get("lineup_1_id"),
+          placeholder_name: null,
+          name: lineup1Names[index] || null, // Player names are optional
+          is_banned: false,
+          is_gagged: lineup1Gagged.includes("true"),
+          is_muted: lineup1Muted.includes("true"),
+        }));
+
+        const lineup2Players = lineup2SteamIds.map((steamId, index) => ({
+          captain: lineup2Captains.includes(index.toString()),
+          steam_id: steamId,
+          match_lineup_id: formData.get("lineup_2_id"),
+          placeholder_name: null,
+          name: lineup2Names[index] || null, // Player names are optional
+          is_banned: false,
+          is_gagged: lineup2Gagged.includes("true"),
+          is_muted: lineup2Muted.includes("true"),
+        }));
+
+        // Build the JSON structure
+        const matchData = {
+          id: formData.get("id"),
+          password: formData.get("password"),
+          lineup_1_id: formData.get("lineup_1_id"),
+          lineup_2_id: formData.get("lineup_2_id"),
+          current_match_map_id: matchMaps[0]?.id || "",
+          options: {
+            mr: parseInt(formData.get("mr")) || 8,
+            type: formData.get("type") || "Competitive",
+            best_of: parseInt(formData.get("best_of")) || 1,
+            coaches: formData.get("coaches") === "on",
+            overtime: formData.get("overtime") === "on",
+            tv_delay: parseInt(formData.get("tv_delay")) || 115,
+            knife_round: formData.get("knife_round") === "on",
+            ready_setting: formData.get("ready_setting") || "Players",
+            timeout_setting:
+              formData.get("timeout_setting") || "CoachAndPlayers",
+            tech_timeout_setting:
+              formData.get("tech_timeout_setting") || "Admin",
+            number_of_substitutes:
+              parseInt(formData.get("number_of_substitutes")) || 0,
+            cfg_override: formData.get("cfg_override") || "",
+          },
+          match_maps: matchMaps,
+          lineup_1: {
+            id: formData.get("lineup_1_id"),
+            name: formData.get("lineup_1_name") || "Team 1",
+            coach_steam_id: formData.get("lineup_1_coach_steam_id") || null,
+            lineup_players: lineup1Players,
+          },
+          lineup_2: {
+            id: formData.get("lineup_2_id"),
+            name: formData.get("lineup_2_name") || "Team 2",
+            coach_steam_id: formData.get("lineup_2_coach_steam_id") || null,
+            lineup_players: lineup2Players,
+          },
+          is_lan: true,
+        };
+
+        const jsonOutput = document.getElementById("jsonOutput");
+        jsonOutput.textContent = JSON.stringify(matchData, null, 2);
+        jsonOutput.classList.remove("hidden");
+      }
+
+      function submitForm() {
+        generateJSON();
+        // Here you would typically send the data to your server
+        // Form submitted successfully - JSON will be displayed below
+      }
+    </script>
+  </body>
+</html>
